@@ -6,7 +6,7 @@ library(shinyjs)
 
 
 # Load data ----
-wine <- read.csv("data/wineQualityReds.csv",header=T,sep=",")
+wine <- read.csv("wineQualityReds.csv",header=T,sep=",")
 wine <- wine[,-1]  # ID väli eemaldamine
 
 
