@@ -20,7 +20,7 @@ ui <- fluidPage(
   ),
   
   # App title ----
-  titlePanel(("Veini kvaliteedi prognoos"), windowTitle = "Veini kvaliteedi analüüs"),
+  titlePanel(("Veini kvaliteedi analüüs"), windowTitle = "Veini kvaliteedi analüüs"),
   
   # App help text ----
   helpText("ITB8812 Andmete visualiseerimise projekt. Jana Demaskevits"),
