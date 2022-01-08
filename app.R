@@ -107,14 +107,12 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                         tabPanel("KORRELATSIOONIMAATRIKS",
                                  sidebarLayout(
                                    sidebarPanel(
-                                     selectInput(
-                                       "select1",
-                                       "Vali maatriksi tüüp:",
-                                       choices = list("ruut" = 1, "ring" = 2),
-                                       selected = 1
-                                     ),
-                                     selectInput("select2", "Vali koefitsientide kuva:", choices = list("koefitsientidega" = 1, "ilma koefitsientideta" = 2), 
-                                                 selected = 2),
+                                     
+                                     radioButtons("radio", label = p("Vali maatriksi tüüp"),
+                                                  choices = list("ruut" = 1, "ring" = 2), 
+                                                  selected = 1),
+                                    
+                                     checkboxInput("checkbox", label = "koefitsientidega", value = FALSE)
                                    ),
                                    mainPanel(h3("Korrelatsioonimaatriks:"),
                                              plotOutput("correlation"),
@@ -145,9 +143,9 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                    
                                    mainPanel(
                                      br(),
-                                     h5("Kuvamine kvaliteedi tunnuse sõltuvust valitud tunnusest:"),
-                                     br(),    
+                                     h3("Kokkuvõte kvaliteedi tunnuse sõltuvust valitud tunnusest:"),
                                      dataTableOutput("table4"),
+                                     h3("Karp-vurrud diagramm:"),
                                      plotOutput("boxplot3")
                                    ) ))
             )))
@@ -155,8 +153,6 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
 
 
 server <- function(input, output) {
-  
-  # Access to input values global
   data_input <- reactive({
     req(input$selectVar2)
     x <- wine[[input$selectVar2]]
@@ -167,17 +163,18 @@ server <- function(input, output) {
   })
   
   # Generate an HTML table view of the data ----
-  output$tabel <- renderDataTable( wine, options =
+  output$tabel <- renderDataTable(wine, options =
                                      list(searching = FALSE,ordering=T, lengthMenu = c(5, 10, 20),
                                           pageLength = 10, autoWidth = TRUE, scrollX = TRUE)) 
   
-  # Generate a correlation matrix
+  # Access the value of the widget with input$radio and input$checkbox
   output$correlation <- renderPlot({
-    if(input$select1 == 1 && input$select2 == 1) {ggcorrplot(corr, lab = TRUE)}
-    else if(input$select1 == 1 && input$select2 == 2) {ggcorrplot(corr, lab = FALSE)}
-    else if(input$select1 == 2 && input$select2 == 1) {ggcorrplot(corr, lab = TRUE, method = "circle")}
-    else if(input$select1 == 2 && input$select2 == 2) {ggcorrplot(corr, lab = FALSE, method = "circle")}
-  })
+    if(input$radio == 1 && input$checkbox  == TRUE) {ggcorrplot(corr, lab = TRUE)}
+    else if(input$radio == 1 && input$checkbox  == FALSE) {ggcorrplot(corr, lab = FALSE)}
+    else if(input$radio == 2 && input$checkbox  == TRUE) {ggcorrplot(corr, lab = TRUE, method = "circle")}
+    else if(input$radio == 2 && input$checkbox  == FALSE) {ggcorrplot(corr, lab = FALSE, method = "circle")}
+   
+    })
   
   # Generate an HTML table view of the numerical characteristics ----
   output$table2 <- renderDataTable( summary(wine[2:7]), options =
@@ -209,7 +206,7 @@ server <- function(input, output) {
     text(mean(data_input2()), 0.95, "mean", col="red", cex=0.5)
   })
   
-  # Generate a table 
+  # Generate a boxplot 
   output$table4 <- renderDataTable(
     Summarize(data_input()~quality, data=wine),options =
                                                  list(searching = FALSE, ordering=F, 
