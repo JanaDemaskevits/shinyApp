@@ -1,14 +1,14 @@
 library(shiny)
 library(ggcorrplot)
+library(ggplot2)
 library(FSA)
-
-
 
 
 # Load data ----
 wine <- read.csv("data/wineQualityReds.csv",header=T,sep=",")
 corr <- cor(wine[-1])
 variables <- names(wine[-1])
+
 
 # Define UI for app ----
 ui <- fluidPage(
@@ -28,7 +28,7 @@ ui <- fluidPage(
   
   
   
-  mainPanel(width = '1000px',
+  mainPanel(width = '1200px',
             
             # Output: Tabset w/ plot, summary, and table ----
             tabsetPanel(id="tabs1",  type = "tabs",
@@ -68,7 +68,9 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                    ),
                                    mainPanel(
                                      br(),
-                                     h3("Andmed:"), dataTableOutput("tabel")
+                                     p("Sellel vahelehel kuvatakse tunnuste nimekirja koos kirjeldusega ning ka tabel andmetega – objektide arv, tunnuste nimed ja neid väärtused."),
+                                     h3("Andmed:"), 
+                                     dataTableOutput("tabel")
                                    ))),
                         
                         tabPanel("KIRJELDAV ANALÜÜS",
@@ -78,7 +80,7 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                      ]]),
                                      br(),
                                      sliderInput(inputId = "bins",
-                                                 label = "Vali kaalude arv:",
+                                                 label = "Vali intervallide arv:",
                                                  min = 1,
                                                  max = 50,
                                                  value = 30
@@ -86,6 +88,7 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                    ),
                                    
                                    mainPanel(br(),
+                                             p("Sellel vahelehel kuvatakse histogramm andmeväärtuste esinemissageduse vaatamiseks ja karp-vurrud diagramm väärtuste jaotuse ja erindite vaatamiseks sõltuvalt valitud muutujast. Allpool on võimalik näha ka tabel arvkarakteristikutega."),
                                              
                                              fluidRow(
                                                column(6,
@@ -95,14 +98,19 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                                column(6,
                                                       h3("Karp-vurrud diagramm:"),
                                                       plotOutput("boxplot"),
+                                               ),
+                                               column(3,
+                                                      h3("Arvkarakteristikud:"),
+                                                      br(),    
+                                                      dataTableOutput("table2"),
+                                                      br()
                                                )
+                                               
                                              ),
                                              
                                              
-                                             h3("Arvkarakteristikud:"),
-                                             br(),    
-                                             dataTableOutput("table2"),
-                                             dataTableOutput("table3")
+                                            
+                                             
                                    ) )),
                         tabPanel("KORRELATSIOONIMAATRIKS",
                                  sidebarLayout(
@@ -110,11 +118,14 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                      
                                      radioButtons("radio", label = p("Vali maatriksi tüüp"),
                                                   choices = list("ruut" = 1, "ring" = 2), 
-                                                  selected = 1),
+                                                  selected = 1
+                                                  ),
                                     
-                                     checkboxInput("checkbox", label = "koefitsientidega", value = FALSE)
+                                     checkboxInput("checkbox", label = p("koefitsientidega"), value = FALSE)
                                    ),
-                                   mainPanel(h3("Korrelatsioonimaatriks:"),
+                                   mainPanel(br(),
+                                     p("Sellel vahelehel kuvatakse korrelatsioonimaatriks, kus on võimalik näha muutujate vaheliste seoste olemasolu ja mõju kvaliteedimuutujale."),
+                                     h3("Korrelatsioonimaatriks:"),
                                              plotOutput("correlation"),
                                              br(),
                                              p("Tunnuse quality on määratletakse järgmised sõltuvused:
@@ -143,10 +154,14 @@ Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visua
                                    
                                    mainPanel(
                                      br(),
+                                     p("Sellel vahelehel kuvatakse tabel ning ka karp-vurrud diagramm koos valitud muutuja väärtuste jaotusega sõltuvalt kvaliteedimuutuja väärtusest."),
+                                     br(),
                                      h3("Kokkuvõte kvaliteedi tunnuse sõltuvust valitud tunnusest:"),
                                      dataTableOutput("table4"),
                                      h3("Karp-vurrud diagramm:"),
                                      plotOutput("boxplot3")
+                                     
+                                     
                                    ) ))
             )))
 
@@ -157,13 +172,31 @@ server <- function(input, output) {
     req(input$selectVar2)
     x <- wine[[input$selectVar2]]
   })
+  
   data_input2 <- reactive({
     req(input$selectVar)
     x <- wine[[input$selectVar]]
   })
   
+  checkVar <- reactive({
+    if(input$selectVar == 'fixed.acidity' || input$selectVar == 'volatile.acidity' || input$selectVar == 'citric.acid' || input$selectVar == 'residual.sugar' || input$selectVar == 'chlorides' || input$selectVar == 'sulphates')
+    {unit = 'g / dm^3'}
+    if(input$selectVar == 'free.sulfur.dioxide' || input$selectVar == 'total.sulfur.dioxide') 
+    {unit = 'mg / dm^3'}
+    if(input$selectVar == 'pH') 
+    {unit = 'score'}
+    if(input$selectVar == 'alcohol') 
+    {unit = '%'}
+    if(input$selectVar == 'quality') 
+    {unit = 'score'}
+    
+    xlab_name = sprintf("%s (%s)", input$selectVar, unit)
+  })
+  
+ 
+  
   # Generate an HTML table view of the data ----
-  output$tabel <- renderDataTable(wine, options =
+  output$tabel <- renderDataTable(wine[1:13], options =
                                      list(searching = FALSE,ordering=T, lengthMenu = c(5, 10, 20),
                                           pageLength = 10, autoWidth = TRUE, scrollX = TRUE)) 
   
@@ -177,13 +210,7 @@ server <- function(input, output) {
     })
   
   # Generate an HTML table view of the numerical characteristics ----
-  output$table2 <- renderDataTable( summary(wine[2:7]), options =
-                                      list(searching = FALSE,ordering=F, 
-                                           dom = 't')
-  )
-  
-  # Generate an HTML table view of the numerical characteristics ----
-  output$table3 <- renderDataTable(summary(wine[8:13]), options =
+  output$table2 <- renderDataTable(summary(wine[c(sprintf("%s", input$selectVar))]), options =
                                       list(searching = FALSE,ordering=F, 
                                            dom = 't')
   )
@@ -194,14 +221,14 @@ server <- function(input, output) {
     bins <- seq(min(data_input2()), max(data_input2()), length.out = input$bins + 1)
     
     hist(data_input2(), breaks = bins, col = "#FF336A", border = "black",
-         xlab = input$selectVar,
+         xlab = checkVar(),
          ylab="Sagedus",
          main = "")
   })
   
   # Generate a boxplot 
   output$boxplot <- renderPlot({
-    boxplot(data_input2(), col=rgb(0,0,1,0.5), horizontal=1, xlab=input$selectVar)
+    boxplot(data_input2(), col=rgb(0,0,1,0.5), horizontal=1, xlab=checkVar())
     points(mean(data_input2()), 1, col = "red", pch = 18)
     text(mean(data_input2()), 0.95, "mean", col="red", cex=0.5)
   })
@@ -220,6 +247,6 @@ server <- function(input, output) {
     points(1:6, kesk, col = "red", pch = 18)
 
   })
+   
 }
-
 shinyApp(ui = ui, server = server)
