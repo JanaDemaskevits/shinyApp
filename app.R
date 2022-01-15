@@ -178,21 +178,24 @@ server <- function(input, output) {
     x <- wine[[input$selectVar]]
   })
   
-  checkVar <- reactive({
-    if(input$selectVar == 'fixed.acidity' || input$selectVar == 'volatile.acidity' || input$selectVar == 'citric.acid' || input$selectVar == 'residual.sugar' || input$selectVar == 'chlorides' || input$selectVar == 'sulphates')
+  checkVar <- function(input) {
+ 
+    
+    if(input == 'fixed.acidity' || input == 'volatile.acidity' || input == 'citric.acid' || input == 'residual.sugar' || input == 'chlorides' || input == 'sulphates')
     {unit = 'g / dm^3'}
-    if(input$selectVar == 'free.sulfur.dioxide' || input$selectVar == 'total.sulfur.dioxide') 
+    if(input == 'free.sulfur.dioxide' || input == 'total.sulfur.dioxide') 
     {unit = 'mg / dm^3'}
-    if(input$selectVar == 'pH') 
+    if(input == 'pH') 
     {unit = 'score'}
-    if(input$selectVar == 'alcohol') 
+    if(input == 'alcohol') 
     {unit = '%'}
-    if(input$selectVar == 'quality') 
+    if(input == 'quality') 
     {unit = 'score'}
     
-    xlab_name = sprintf("%s (%s)", input$selectVar, unit)
-  })
-  
+    xlab_name = sprintf("%s (%s)", input, unit)
+  }
+    
+    
  
   
   # Generate an HTML table view of the data ----
@@ -221,14 +224,14 @@ server <- function(input, output) {
     bins <- seq(min(data_input2()), max(data_input2()), length.out = input$bins + 1)
     
     hist(data_input2(), breaks = bins, col = "#FF336A", border = "black",
-         xlab = checkVar(),
+         xlab =checkVar(input$selectVar),
          ylab="Sagedus",
          main = "")
   })
   
   # Generate a boxplot 
   output$boxplot <- renderPlot({
-    boxplot(data_input2(), col=rgb(0,0,1,0.5), horizontal=1, xlab=checkVar())
+    boxplot(data_input2(), col=rgb(0,0,1,0.5), horizontal=1, xlab=checkVar(input$selectVar))
     points(mean(data_input2()), 1, col = "red", pch = 18)
     text(mean(data_input2()), 0.95, "mean", col="red", cex=0.5)
   })
@@ -242,7 +245,7 @@ server <- function(input, output) {
   
   # Generate a boxplot 
   output$boxplot3 <- renderPlot({
-    boxplot(data_input()~wine$quality, data=wine, col = "#00FF7F", ylab=input$selectVar2, xlab=variables[[12]])
+    boxplot(data_input()~wine$quality, data=wine, col = "#00FF7F", ylab=checkVar(input$selectVar2), xlab=sprintf("%s (%s)", variables[[12]], "score"))
     kesk <- tapply(data_input(), wine$quality, mean)
     points(1:6, kesk, col = "red", pch = 18)
 
