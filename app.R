@@ -46,7 +46,15 @@ ui <- fluidPage(
                                              br(),
                                              p("Projekti eesmärk on viia läbi kirjeldav analüüs, uurida ja leida punase veini kirjeldavate andmete sõltuvusi ning nende mõju veini kvaliteedile.
 Ning ka vaadata kas teised muutujad on omavahel korrelatsioonis. Tulemuste visualiseerimiseks kasutada kursuses 'Andmete visualiseerimine' omandatud meetodid ja teadmised."), 
+                                             
+                                             h3("Rakenduse ülevaade:"),
                                              br(),
+                                             p("Vaheleht 1:  Sissejuhatus ja projekti eesmärgid."),
+                                             p("Vaheleht 2:  Tunnuste nimekirja koos kirjeldusega ning ka tabel andmetega."),
+                                             p("Vaheleht 3:  Histogramm andmeväärtuste esinemissageduse vaatamiseks ja karp-vurrud diagramm väärtuste jaotuse ja erindite vaatamiseks sõltuvalt valitud muutujast ja tabel arvkarakteristikutega."),
+                                             p("Vaheleht 4:  Korrelatsioonimaatriks, kus on võimalik näha muutujate vaheliste seoste olemasolu ja mõju kvaliteedimuutujale."),
+                                             p("Vaheleht 5:  Tabel ning ka karp-vurrud diagramm koos valitud muutuja väärtuste jaotusega sõltuvalt kvaliteedimuutuja väärtusest."),
+                                             br()
                                    ))),
                         tabPanel("ANDMED",
                                  sidebarLayout(
